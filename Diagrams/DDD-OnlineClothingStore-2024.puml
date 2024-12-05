@@ -1,0 +1,192 @@
+@startuml
+hide circle
+top to bottom direction
+
+!define ENTITY(entityName) class entityName << Entity >>
+!define AGGREGATE(aggregateName) class aggregateName << Aggregate >>
+!define AGGREGATE_ROOT(aggregateRootName) class aggregateRootName << Aggregate Root >>
+!define AGGREGATE_ROOT_ENTITY(aggregateRootEntityName) class aggregateRootEntityName << Aggregate Root >> << Entity >>
+!define VALUE_OBJECT(valueObjectName) class valueObjectName << Value Object >>
+!pragma useVerticalIf on
+skinparam dpi 350
+skinparam packageStyle rectangle
+skinparam rectangle {
+    BackgroundColor #f7f4eb
+    BorderColor Black
+}
+
+rectangle "Online Clothing Store" as BoundedContextOnlineClothingStore #line.dashed{
+
+Package "Inventory Management Sub-Domain" <<Rectangle>> #Lavender {
+
+        ENTITY(Product) #lightblue {
+            size: String
+            model: String
+            image: String
+            status: String
+        }
+
+        VALUE_OBJECT(ProductIdentifier) #Bisque{
+           productIdentifier: String
+        }
+
+
+        VALUE_OBJECT(Options) #Bisque{
+           name: String
+           description: String
+           price: Price
+        }
+
+        VALUE_OBJECT(Manufacturer) #Bisque{
+            brand: String
+            country: String
+        }
+
+        AGGREGATE_ROOT(Inventory) #Cyan {
+            type: String
+        }
+
+       VALUE_OBJECT(InventoryIdentifier) #Bisque{
+            inventoryId: UUID
+       }
+
+       Inventory --> InventoryIdentifier
+       Inventory *-- "0..*" ProductIdentifier
+
+       Product --> ProductIdentifier
+       Product o-- "0..*" Options
+       Product o-- "1" Manufacturer
+}
+
+Package "Sales and Marketing Sub-Domain" <<Rectangle>> #DFBDF4 {
+
+               note "Invariant [When sale Status is ORDER_CANCELLED, product status becomes AVAILABLE]" as saleInvariant1
+               AGGREGATE_ROOT_ENTITY(Sale) #lightPink {
+                   date: DateTime
+                   status: String
+               }
+
+               VALUE_OBJECT(SaleIdentifier) #Bisque{
+                   saleId: UUID
+               }
+                  }
+
+               Sale --> SaleIdentifier
+
+
+Package "Client Management Sub-Domain" <<Rectangle>> #FFCDD2{
+
+        AGGREGATE_ROOT_ENTITY(Client) #lightpink{
+            username: String
+            email: String
+        }
+
+        VALUE_OBJECT(ClientIdentifier) #Bisque{
+            clientId: UUID
+        }
+        VALUE_OBJECT(ClientAddress) #Bisque{
+                street: String
+                city: String
+                province: String
+                country: String
+                postalCode: String
+        }
+
+        VALUE_OBJECT(ClientPhoneNumber) #Bisque {
+            type: String
+            number: String
+        }
+
+
+        Client -u-> ClientIdentifier
+        Client o-- "0..*" ClientPhoneNumber
+        Client o--> "1" ClientAddress
+
+
+    }
+
+    Package "Human Resources Sub-Domain" <<Rectangle>> #3399FF{
+
+            ENTITY(Employee) #lightblue{
+                firstName: String
+                lastName: String
+                email: String
+                salary: Decimal
+                commissionRate: Decimal
+            }
+            VALUE_OBJECT(EmployeeIdentifier) #Bisque{
+                salesPersonId: UUID
+            }
+
+            VALUE_OBJECT(EmployeePhoneNumber) #Bisque {
+                type: String
+                number: String
+            }
+
+            ENTITY(Department) #lightblue {
+                departmentName: String
+                headCount: Integer
+            }
+
+            VALUE_OBJECT(DepartmentIdentifier) #Bisque {
+                departmentCode: UUID
+            }
+
+            VALUE_OBJECT(Position) #Bisque {
+                title: String
+                positionCode: String
+            }
+
+
+
+            Employee --> EmployeeIdentifier
+            Employee "1" o--> "1..*" EmployeePhoneNumber
+            Employee "1" o--> "1" DepartmentIdentifier
+            Department --> DepartmentIdentifier
+            Department "1" o--> "1..*" Position
+        }
+
+                       Sale -u-> ClientIdentifier
+                       Sale -u-> ProductIdentifier
+
+              Client *-- "0..*" SaleIdentifier
+               Sale -u-> EmployeeIdentifier
+
+               Package "Report Management Sub-Domain" <<Rectangle>> #FFECB3{
+
+                       AGGREGATE_ROOT_ENTITY(Report) #lightyellow{
+                           name: String
+                           description: String
+                       }
+
+                       VALUE_OBJECT(ReportIdentifier) #Bisque{
+                           reportId: UUID
+                       }
+
+                       Report -u-> ReportIdentifier
+                       Report --> "0..*" SaleIdentifier
+                   }
+
+         Package "Payment Management Sub-Domain" <<Rectangle>> #D4E157{
+
+                AGGREGATE(Payment) #lightgreen {
+                    amount: Decimal
+                    status: String
+                }
+
+                VALUE_OBJECT(PaymentIdentifier) #Bisque{
+                    paymentId: UUID
+                }
+
+                VALUE_OBJECT(PaymentMethod) #Bisque{
+                    method: String
+                    description: String
+                }
+
+                Payment --> PaymentIdentifier
+                Payment "1" o--> "1..*" PaymentMethod
+                Payment --> "1" SaleIdentifier
+            }
+}
+
+@enduml

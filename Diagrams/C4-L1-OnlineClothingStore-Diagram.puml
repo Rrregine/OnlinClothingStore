@@ -1,0 +1,12 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Container.puml
+title System Context Diagram for Online Clothing Store System
+
+Person(employee, "Employee","Employee of Online Clothing Store")
+Person(client, "Client","Client of Online Clothing Store")
+System(online_clothing_store, "Online Clothing Store", "System for employees to manage the inventory and sales")
+
+Rel(employee, online_clothing_store, "Tracks inventory and client sales", "Uses")
+Rel(client, online_clothing_store, "Check products for sales", "Uses")
+@enduml

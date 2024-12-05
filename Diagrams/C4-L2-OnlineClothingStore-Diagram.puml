@@ -1,0 +1,68 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Container.puml
+
+!define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons
+!define FONTAWESOME https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/font-awesome-5
+
+!include FONTAWESOME/users.puml
+
+AddElementTag("microService", $shape=EightSidedShape(), $bgColor="CornflowerBlue", $fontColor="white", $legendText="micro service\neight sided")
+AddElementTag("storage", $shape=RoundedBoxShape(), $bgColor="lightSkyBlue", $fontColor="white")
+AddRelTag(aggregate_root, $lineColor="red")
+
+LAYOUT_TOP_DOWN()
+'LAYOUT_WITH_LEGEND()
+SHOW_PERSON_OUTLINE()
+'HIDE_STEREOTYPE()
+
+title Container Diagram for Online Clothing Store
+
+Person(vendor, "Employee","Employee of Online Clothing Store")
+Person(client, "Client","Client of Online Clothing Store")
+System_Boundary(onlineclothingstore, "Online Clothing Store System"){
+    Container(webapp, "Web Application", "JavaScript, React", "Delivers the static content and the online clothing store single page application to the vendor's browser")
+    Container(singlepage_app, "Single-Page Application", "JavaScript, React", "Provide online clothing store to vendors via their browser")
+    Container(api_gateway, "API-Gateway", "Java, Spring Boot", "Provide online clothing store functionality via a JSON/REST HTTPS API")
+
+    Container(clients_service, "clients-service", "Java, Spring Boot", "Provides client functionality via a JSON/REST HTTPS API", $tags = "microService")
+    Container(vendors_service, "employees-service", "Java, Spring Boot", "Provides employee functionality via a JSON/REST HTTPS API", $tags = "microService")
+    Container(inventory_service, "inventory-service", "Java, Spring Boot", "Provides inventory functionality via a JSON/REST HTTPS API", $tags = "microService")
+    Container(report_service, "report-service", "Java, Spring Boot", "Provides report functionality via a JSON/REST HTTPS API", $tags = "microService")
+    Container(payment_service, "payment-service", "Java, Spring Boot", "Provides payment functionality via a JSON/REST HTTPS API", $tags = "microService")
+    Container(sales_service, "sales-service", "Java, Spring Boot", "Provides sale functionality via a JSON/REST HTTPS API", $tags = "microService")
+
+    ContainerDb(clients_db, "Clients DB", "MySQL", "Stores client information", $tags = "storage")
+    ContainerDb(vendors_db, "Employees DB", "MySQL", "Stores employee information", $tags = "storage")
+    ContainerDb(inventory_db, "Inventory DB", "Postgres", "Stores inventory information", $tags = "storage")
+    ContainerDb(report_db, "Reports DB", "MySQL", "Stores report information", $tags = "storage")
+    ContainerDb(payment_db, "Payments DB", "MySQL", "Stores payment information", $tags = "storage")
+    ContainerDb(sales_db, "Sales DB", "Mongo DB", "Stores sale information", $tags = "storage")
+
+    Rel(vendor, webapp, "Visiting onlineclothingstore.com", "HTTPS")
+    Rel(client, webapp, "Visiting onlineclothingstore.com", "HTTPS")
+    Rel_R(webapp, singlepage_app, "Delivers to the employee's browser")
+    Rel(vendor, singlepage_app, "Views inventory and tracks sales", "HTTPS")
+    Rel(singlepage_app, api_gateway, "Makes API calls to", "JSON/REST/HTTPS")
+
+    Rel(api_gateway, clients_service, "Makes API calls to", "JSON/REST/HTTPS")
+    Rel(api_gateway, vendors_service, "Makes API calls to", "JSON/REST/HTTPS")
+    Rel(api_gateway,inventory_service, "Makes API calls to", "JSON/REST/HTTPS")
+    Rel(api_gateway,report_service, "Makes API calls to", "JSON/REST/HTTPS")
+    Rel(api_gateway,payment_service, "Makes API calls to", "JSON/REST/HTTPS")
+    Rel(api_gateway,sales_service, "Makes API calls to", "JSON/REST/HTTPS")
+
+    Rel(sales_service,clients_service, "Makes API calls to", "JSON/REST/HTTPS", $tags = "aggregate_root")
+    Rel(sales_service,vendors_service, "Makes API calls to", "JSON/REST/HTTPS", $tags = "aggregate_root")
+    Rel(sales_service,inventory_service, "Makes API calls to", "JSON/REST/HTTPS", $tags = "aggregate_root")
+    Rel(sales_service,report_service, "Makes API calls to", "JSON/REST/HTTPS", $tags = "aggregate_root")
+    Rel(sales_service,payment_service, "Makes API calls to", "JSON/REST/HTTPS", $tags = "aggregate_root")
+
+    Rel_D(clients_service, clients_db, "Read from and write to", "JDBC")
+    Rel_D(vendors_service, vendors_db, "Read from and write to", "JDBC")
+    Rel_D(inventory_service, inventory_db, "Read from and write to", "JDBC")
+    Rel_D(report_service, report_db, "Read from and write to", "JDBC")
+    Rel_D(payment_service, payment_db, "Read from and write to", "JDBC")
+    Rel_R(sales_service, sales_db, "Read from and write to", "Mongo")
+}
+
+@enduml
